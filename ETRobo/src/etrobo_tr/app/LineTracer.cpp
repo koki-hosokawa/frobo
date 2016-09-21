@@ -97,9 +97,9 @@ void LineTracer::run() {
 int LineTracer::calcDirection(bool isOnLine) {
     if (isOnLine) {
         // ライン上にある場合
-        return BalancingWalker::LOW;
+        return -BalancingWalker::LOW;
     } else {
         // ライン外にある場合
-        return -BalancingWalker::LOW;
+        return BalancingWalker::LOW;
     }
 }
