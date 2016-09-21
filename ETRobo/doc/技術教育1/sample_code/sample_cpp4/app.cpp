@@ -1,13 +1,3 @@
-/**
- ******************************************************************************
- ** ファイル名 : app.c
- **
- ** 概要 : 2輪倒立振子ライントレースロボットのTOPPERS/HRP2用Cサンプルプログラム
- **
- ** 注記 : sample_c4 (sample_c3にBluetooth通信リモートスタート機能を追加)
- ******************************************************************************
- **/
-
 #include "ev3api.h"
 #include "app.h"
 #include "balancer.h"
@@ -43,19 +33,20 @@ static const motor_port_t
 static int      bt_cmd = 0;     /* Bluetoothコマンド 1:リモートスタート */
 static FILE     *bt = NULL;     /* Bluetoothファイルハンドル */
 
-/* 下記のマクロは個体/環境に合わせて変更する必要があります */
-/* sample_c1マクロ */
 #define GYRO_OFFSET  0          /* ジャイロセンサオフセット値(角速度0[deg/sec]時) */
 #define LIGHT_WHITE  40         /* 白色の光センサ値 */
 #define LIGHT_BLACK  0          /* 黒色の光センサ値 */
-/* sample_c2マクロ */
+#define LIGHT_GRAY  630          /* 灰色の光センサ値 */
+#define KP 0.38
+
+
 #define SONAR_ALERT_DISTANCE 30 /* 超音波センサによる障害物検知距離[cm] */
-/* sample_c3マクロ */
+
 #define TAIL_ANGLE_STAND_UP  93 /* 完全停止時の角度[度] */
 #define TAIL_ANGLE_DRIVE      3 /* バランス走行時の角度[度] */
 #define P_GAIN             2.5F /* 完全停止用モータ制御比例係数 */
 #define PWM_ABS_MAX          60 /* 完全停止用モータ制御PWM絶対最大値 */
-/* sample_c4マクロ */
+
 //#define DEVICE_NAME     "ET0"  /* Bluetooth名 hrp2/target/ev3.h BLUETOOTH_LOCAL_NAMEで設定 */
 //#define PASS_KEY        "1234" /* パスキー    hrp2/target/ev3.h BLUETOOTH_PIN_CODEで設定 */
 #define CMD_START         '1'    /* リモートスタートコマンド */
@@ -78,10 +69,11 @@ void main_task(intptr_t unused)
     signed char forward;      /* 前後進命令 */
     signed char turn;         /* 旋回命令 */
     signed char pwm_L, pwm_R; /* 左右モータPWM出力 */
+	static int turn = 0;
 
     /* LCD画面表示 */
     ev3_lcd_fill_rect(0, 0, EV3_LCD_WIDTH, EV3_LCD_HEIGHT, EV3_LCD_WHITE);
-    ev3_lcd_draw_string("EV3way-ET sample_c4", 0, CALIB_FONT_HEIGHT*1);
+    ev3_lcd_draw_string("ETミヤウチ", 0, CALIB_FONT_HEIGHT*1);
 
     /* センサー入力ポートの設定 */
     ev3_sensor_config(sonar_sensor, ULTRASONIC_SENSOR);
@@ -139,6 +131,9 @@ void main_task(intptr_t unused)
     {
         int32_t motor_ang_l, motor_ang_r;
         int gyro, volt;
+    	
+    	turn = (ev3_color_sensor_get_reflect(color_sensor) - (LIGHT_WHITE + LIGHT_BLACK)/2) * KP;
+        	
 
         if (ev3_button_is_pressed(BACK_BUTTON)) break;
 
@@ -151,14 +146,11 @@ void main_task(intptr_t unused)
         else
         {
             forward = 30; /* 前進命令 */
-            if (ev3_color_sensor_get_reflect(color_sensor) >= (LIGHT_WHITE + LIGHT_BLACK)/2)
-            {
-                turn =  20; /* 左旋回命令 */
-            }
-            else
-            {
-                turn = -20; /* 右旋回命令 */
-            }
+ 		if (100 < turn) {
+            turn = 100.0;
+        } else if (turn < -100) {
+            turn = -100.0;
+        }
         }
 
         /* 倒立振子制御API に渡すパラメータを取得する */
