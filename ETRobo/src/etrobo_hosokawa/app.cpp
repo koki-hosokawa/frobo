@@ -45,8 +45,8 @@ static FILE     *bt = NULL;     /* Bluetoothファイルハンドル */
 #define P_GAIN             2.5F /* 完全停止用モータ制御比例係数 */
 #define PWM_ABS_MAX          60 /* 完全停止用モータ制御PWM絶対最大値 */
 
-//#define DEVICE_NAME     "ET0"  /* Bluetooth名 hrp2/target/ev3.h BLUETOOTH_LOCAL_NAMEで設定 */
-//#define PASS_KEY        "1234" /* パスキー    hrp2/target/ev3.h BLUETOOTH_PIN_CODEで設定 */
+#define DEVICE_NAME     "Mindstorms EV3"  /* Bluetooth名 hrp2/target/ev3_gcc/ev3.h BLUETOOTH_LOCAL_NAMEで設定 */
+#define PASS_KEY        "0000" /* パスキー    hrp2/target/ev3_gcc/ev3.h BLUETOOTH_PIN_CODEで設定 */
 #define CMD_START         '1'    /* リモートスタートコマンド */
 
 /* LCDフォントサイズ */
@@ -151,6 +151,8 @@ void main_task(intptr_t unused)
 
         tail_control(TAIL_ANGLE_DRIVE); /* バランス走行用角度に制御 */
 
+		forward = 30;
+		
         float error = midpoint - ev3_color_sensor_get_reflect(color_sensor);
         integral = error + integral * 0.5;
         turn = 0.07 * error + 0.3 * integral + 1 * (error - lasterror);
@@ -244,4 +246,5 @@ void bt_task(intptr_t unused)
         }
         fputc(c, bt);
     }
+}
 }
